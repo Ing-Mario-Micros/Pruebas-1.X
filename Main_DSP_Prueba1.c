@@ -7,7 +7,7 @@
 
 
 #include <xc.h>
-
+#include "RS232.h"
 //Fosc = 7.37MHz Por Defecto
 #define FCY 1842500
 #include <libpic30.h>
@@ -35,7 +35,7 @@
 // #pragma config statements should precede project file includes.
 // Use project enums instead of #define for ON and OFF.
 
-#define LED_CPU _LATC13
+#define LED_CPU _LATD3
 
 /*------------------------- Función de Interrupción Timer 1 ----------------*/
 void __attribute__((interrupt,auto_psv)) _T1Interrupt(void);
@@ -56,16 +56,21 @@ char recepcion =0;
 unsigned char Tipo=0, Fase=0;
 unsigned char Registro_Temp, Dato_Temp;
 char Vector_Datos[20];
+
+/*------------------------- Variables PWM --------------------------------*/
+void Por_PWM (float);
 void main(void) {
     /*------------------ Configuración de Pines Digital --------------------*/
-    TRISC=0;
-    LATC=0;
-    _LATC14 = 1;
+    TRISD=0;
+    LATD=0;
+    _LATD9 = 1;
     /*------------------ Configuración del Timer 1 -------------------------*/
     PR1=7196;
     TMR1=0;
     _T1IF=0;
     T1CON = 0x8020;
+    /*------------------ Configuración de RS232 ---------------------------*/
+    Activar_RS232();
     /*------------------- Configuración de PWM -----------------------------*/
     PR2=1842;
     TMR2=0;
@@ -92,14 +97,18 @@ void main(void) {
     _SI2CIF=0;
     /** Prueba de reset **/
     __delay_ms(1000);
-    _LATC14 = 0;
+    _LATD9 = 0;
     Vector_Datos[0x0]=10;
     Vector_Datos[0x1]=20;
     Vector_Datos[0x2]=30;
     Vector_Datos[0x3]=40;
     /*----------------------------- Funciones de PWM ---------------------------*/
-    void Por_PWM (float);
+    
     while(1){
+         _LATD9 = 1;
+        MensajeRS232("Hola Mundo\n");
+        MensajeRS232(BufferR2);
+        _LATD9 = 0;
         //Lectura_Dir();
         OC1RS=10*Vector_Datos[0x11];
         __delay_ms(1000);
@@ -114,6 +123,9 @@ void Por_PWM (float PPWM){
 void __attribute__((interrupt,auto_psv)) _T1Interrupt(void){
     LED_CPU=LED_CPU^ 1; // Conmutar PinC13 LED CPU
     _T1IF=0;            // Reset de bandera de interrupción en Cero
+}
+void __attribute__((interrupt,auto_psv)) _U2RXInterrupt(void){
+    Interrupcion_RS232();
 }
 void __attribute__((interrupt,auto_psv)) _SI2CInterrupt(void){
     char aux = 0;

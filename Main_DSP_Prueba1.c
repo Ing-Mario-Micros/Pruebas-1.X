@@ -11,6 +11,7 @@
 //Fosc = 7.37MHz Por Defecto
 #define FCY 1842500
 #include <libpic30.h>
+#include <math.h>
 
 // DSPIC30F4013 Configuration Bit Settings
 
@@ -55,7 +56,7 @@ char recepcion =0;
 /**Variables de comunicación Esclavo**/
 unsigned char Tipo=0, Fase=0;
 unsigned char Registro_Temp, Dato_Temp;
-char Vector_Datos[20];
+char Vector_Datos[25];
 
 /*------------------------- Variables PWM --------------------------------*/
 void Por_PWM (float);
@@ -102,15 +103,23 @@ void main(void) {
     Vector_Datos[0x1]=20;
     Vector_Datos[0x2]=30;
     Vector_Datos[0x3]=40;
+    Vector_Datos[14]=50;
     /*----------------------------- Funciones de PWM ---------------------------*/
-    
+    Por_PWM (0.0);
+    float a = 0.0;
     while(1){
          _LATD9 = 1;
         MensajeRS232("Hola Mundo\n");
         MensajeRS232(BufferR2);
+        Transmitir(Vector_Datos[14]);
+        Transmitir('-');
+        a=(Vector_Datos[14]*0.01); //Porque no puedo dividir?
+        ImprimirDecimal(a);
+        Transmitir('-');
+        Por_PWM (Vector_Datos[14]*0.01);
         _LATD9 = 0;
         //Lectura_Dir();
-        OC1RS=10*Vector_Datos[0x11];
+        //OC1RS=10*Vector_Datos[0x11];
         __delay_ms(1000);
     }
 }
@@ -118,6 +127,7 @@ void main(void) {
 void Por_PWM (float PPWM){
     //char aux=0
     //aux =(PPWM*1842);
+    ImprimirDecimal (PPWM);
     OC1RS = (int)( (1842+1)*PPWM );
 }
 void __attribute__((interrupt,auto_psv)) _T1Interrupt(void){

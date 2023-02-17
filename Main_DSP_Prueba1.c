@@ -37,7 +37,7 @@
 // #pragma config statements should precede project file includes.
 // Use project enums instead of #define for ON and OFF.
 
-#define LED_CPU _LATD3
+#define LED_CPU _LATC13
 
 /*------------------------- Función de Interrupción Timer 1 ----------------*/
 void __attribute__((interrupt,auto_psv)) _T1Interrupt(void);
@@ -61,6 +61,8 @@ void main(void) {
     TRISD=0;
     LATD=0;
     _LATD9 = 1;
+    TRISC=0;
+    _CN5PUE=1;
     /*------------------ Configuración del Timer 1 -------------------------*/
     PR1=7196;
     TMR1=0;
